@@ -1,44 +1,57 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Message Now Network</title>
+  <title>Anonymous Chat Feed</title>
   <style>
     body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; }
     h2 { text-align: center; }
     iframe { width: 100%; height: 200px; border: none; margin-bottom: 20px; }
     #feed { border: 1px solid #ccc; padding: 10px; max-height: 400px; overflow-y: auto; background: #f9f9f9; }
     .message { border-bottom: 1px solid #ddd; padding: 5px; }
+    .timestamp { font-size: 0.75em; color: #888; }
   </style>
 </head>
 <body>
-  <h2>MNN</h2>
+  <h2>Anonymous Chat</h2>
 
   <!-- Embed Google Form -->
-  <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfvxNfttwqVLFNqmEorNQXhnvifmEFryaRnZPyTk06hl6OltA/viewform?usp=publish-editor"></iframe>
+  <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfvxNfttwqVLFNqmEorNQXhnvifmEFryaRnZPyTk06hl6OltA/viewform?usp=dialog"></iframe>
 
   <h3>Live Feed</h3>
   <div id="feed">Loading messages...</div>
 
   <script>
     const feedDiv = document.getElementById('feed');
-    const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQwYntqhUaZQ-BHRWKG9Daq0j7vumaaAz4KaawR1XwGjTxpu6oUgXscecKmGBdNUv9SbluNU9N0fwag/pub?output=csv'; // Publish Google Sheet → File → Publish to web → CSV
+    const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQwYntqhUaZQ-BHRWKG9Daq0j7vumaaAz4KaawR1XwGjTxpu6oUgXscecKmGBdNUv9SbluNU9N0fwag/pubhtml'; // raw CSV from Publish to web
 
     async function fetchMessages() {
       try {
         const res = await fetch(csvUrl);
         const text = await res.text();
         const lines = text.trim().split('\n');
-        
+
         feedDiv.innerHTML = '';
-        // skip header
+
+        if (lines.length < 2) {
+          feedDiv.innerHTML = 'No messages yet.';
+          return;
+        }
+
+        // Skip header
         for (let i = 1; i < lines.length; i++) {
-          const msg = lines[i].split(',')[0]; // first column = message
+          const cols = lines[i].split(',');
+          const timestamp = cols[0];
+          const msg = cols[1]; // usually message is in column 2
+
           const div = document.createElement('div');
           div.className = 'message';
-          div.textContent = msg;
+          div.innerHTML = `<span class="timestamp">[${timestamp}]</span> ${msg}`;
           feedDiv.appendChild(div);
         }
+
+        // Scroll to bottom
         feedDiv.scrollTop = feedDiv.scrollHeight;
+
       } catch (e) {
         feedDiv.innerHTML = 'Error loading messages.';
         console.error(e);
