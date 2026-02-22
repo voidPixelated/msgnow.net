@@ -14,33 +14,25 @@
   <h2>Anonymous Chat</h2>
 
   <!-- Embed Google Form -->
-  <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSe1i07cI8hIZfSGsMf6pW8C2lqfaSqb-r0c_SDbgdYZy8JNSg/viewform?usp=dialog"></iframe>
+  <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfvxNfttwqVLFNqmEorNQXhnvifmEFryaRnZPyTk06hl6OltA/viewform?usp=publish-editor"></iframe>
 
   <h3>Live Feed</h3>
-  <div id="feed">
-    Loading messages...
-  </div>
+  <div id="feed">Loading messages...</div>
 
   <script>
     const feedDiv = document.getElementById('feed');
-    const sheetId = 'https://docs.google.com/spreadsheets/d/1TDz5B_g0fYU15Q1lf-tG0iTdP5LmU4l8sWjqCU2A948/edit?usp=sharing'; // from responses spreadsheet
-    const sheetName = 'msgnow.net';
-    const apiKey = 'YOUR_GOOGLE_API_KEY_HERE'; // Optional if public sheet
+    const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQwYntqhUaZQ-BHRWKG9Daq0j7vumaaAz4KaawR1XwGjTxpu6oUgXscecKmGBdNUv9SbluNU9N0fwag/pubhtml'; // Publish Google Sheet → File → Publish to web → CSV
 
     async function fetchMessages() {
       try {
-        // Using Google Sheets API v4
-        const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodeURIComponent(sheetName)}?key=${apiKey}`;
-        const res = await fetch(url);
-        const data = await res.json();
-        const rows = data.values || [];
+        const res = await fetch(csvUrl);
+        const text = await res.text();
+        const lines = text.trim().split('\n');
         
-        if (rows.length < 2) return; // No messages yet
-
         feedDiv.innerHTML = '';
-        // skip header row
-        for (let i = 1; i < rows.length; i++) {
-          const msg = rows[i][0];
+        // skip header
+        for (let i = 1; i < lines.length; i++) {
+          const msg = lines[i].split(',')[0]; // first column = message
           const div = document.createElement('div');
           div.className = 'message';
           div.textContent = msg;
